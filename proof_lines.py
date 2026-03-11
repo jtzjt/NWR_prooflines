@@ -1,4 +1,24 @@
-#!/usr/bin/env python3
+"""
+File: proof_lines.py
+Author: Junting Zhong
+Date: 2026-03-11
+
+Requirements: Python 3.8+ (standard library only)
+
+Summary:
+- Implements graph-orientation search based on the paper's algorithms.
+- Computes number of proof-lines and can emit detailed proof lines.
+
+Key Features:
+- Validates adjacency matrices and enumerates Lemma 1 cycles.
+- Applies forced-orientation rules and optional Theorem 5 pivot constraints.
+- Branches on edge orientations to count proof lines or output proof lines.
+
+Usage Examples:
+- python3 proof_lines.py --txt graph.txt --algorithm 2 --progress
+- python3 proof_lines.py --zip graphs.zip --algorithm 3 --theorem5 source --pivot auto-max-degree
+"""
+
 import argparse
 import time
 import zipfile
@@ -338,20 +358,11 @@ def apply_lemma5(
         if best_missing_1 is not None:
             u, v = best_missing_1
             state.set_orient(u, v, best_direction)
-            oriented.append((u, v) if u < v else (v, u))
-            if best_direction == 1:
-                oriented.append((u, v))
-            else:
-                oriented.append((v, u))
+            oriented.append((u, v) if best_direction == 1 else (v, u))
         if best_missing_2 is not None:
             u, v = best_missing_2
             state.set_orient(u, v, best_direction)
-            oriented.append((u, v) if u < v else (v, u))
-            if best_direction == 1:
-                oriented.append((u, v))
-            else:
-                oriented.append((v, u))
-
+            oriented.append((u, v) if best_direction == 1 else (v, u))
 
         otype = "OO" if len(oriented) == 2 else "O"
         return (otype, oriented, list(best_cycle))
@@ -457,7 +468,6 @@ def pick_edge_algorithm_2(state: GraphState, ctx: AlgorithmContext) -> Optional[
     cycles = [c for u, c in best_cycles if u == min_unoriented]
     cycles.sort()
     cycle = cycles[0]
-    cycle = next(c for u, c in best_cycles if u == min_unoriented)
 
 
     edges = cycle_non_oriented_edges(state, cycle)
@@ -576,7 +586,6 @@ def pick_edge_algorithm_3(state: GraphState, ctx: AlgorithmContext) -> Optional[
     cycles = [c[2] for c in filtered if c[1] == min_unoriented]
     cycles.sort()
     cycle = cycles[0]
-    cycle = next(c[2] for c in filtered if c[1] == min_unoriented)
 
 
     edges = cycle_non_oriented_edges(state, cycle)
